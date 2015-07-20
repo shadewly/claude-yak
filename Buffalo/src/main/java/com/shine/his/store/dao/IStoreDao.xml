@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shine.his.store.dao.IStoreDao">
+
+	<!-- 增加库房 -->
+	<insert id="addStoreInfo" parameterType="StoreInfo">
+		INSERT INTO STORE(
+		STORE_CODE,
+		STORE_NAME,
+		STORE_LOCATION,
+		STATUS,
+		CREATE_TIME,
+		MODIFY_TIME,
+		REMARK
+		)VALUES(
+		#{storeCode},
+		#{storeName},
+		#{storeLocation},
+		#{status},
+		#{createTime},
+		#{modifyTime},
+		#{remark}
+		)
+	</insert>
+
+	<!-- 增加仓库管理员 -->
+	<insert id="addSMS" parameterType="List">
+		<foreach collection="list" item="item" index="index" open=""
+			close="" separator=";"></foreach>
+		INSERT INTO STORE_MANAGER_STORE(
+		STORE_CODE,
+		STORE_MANAGER_ID,
+		STORE_MANAGER_STORE_ID
+		)VALUES(
+		#{item.storeCode},
+		#{item.storeManagerId,jdbcType=NUMERIC},
+		SEQ_STORE_MANAGER_STORE.Nextval
+		)
+	</insert>
+
+	<!-- 查询库房信息 -->
+	<select id="queryStoreInfo" parameterType="StoreInfo" resultMap="StoreInfoMap">
+		SELECT A.STORE_CODE as storeCode,
+		A.STORE_NAME as storeName,
+		A.STORE_LOCATION as storeLocation,
+		A.STATUS as status,
+		A.CREATE_TIME as
+		createTime,
+		A.MODIFY_TIME as modifyTime,
+		A.REMARK as remark,
+		B.STORE_CODE as storeCodeid,
+		B.STORE_MANAGER_ID as storeManagerId,
+		C.STORE_MANAGER_NAME as storeManagerName
+		FROM STORE A
+		left outer join
+		STORE_MANAGER_STORE B ON A.STORE_CODE=B.STORE_CODE
+		left outer join
+		STORE_MANAGER C on C.STORE_MANAGER_ID=B.STORE_MANAGER_ID
+		<where>
+			<if test="_parameter!=null and _parameter !='' ">
+				STORE_NAME like '%${storeName}%'
+			</if>
+		</where>
+		ORDER BY A.STORE_CODE DESC
+	</select>
+
+	<resultMap type="StoreInfo" id="StoreInfoMap">
+		<id property="storeCode" column="storeCode" />
+		<result property="storeName" column="storeName" />
+		<result property="storeLocation" column="storeLocation" />
+		<result property="status" column="status" />
+		<result property="createTime" column="createTime" />
+		<result property="modifyTime" column="modifyTime" />
+		<result property="remark" column="remark" />
+		<association property="storeManagerStore" javaType="StoreManagerStore">
+			<id property="storeCode" column="storeCodeid" />
+			<result property="storeManagerId" column="storeManagerId" />
+		</association>
+		<association property="storeManager" javaType="StoreManager">
+			<id property="storeManagerName" column="storeManagerName" />
+		</association>
+	</resultMap>
+
+	<!-- 修改库房信息 -->
+
+	<update id="updateStoreInfo" parameterType="Map">
+		UPDATE STORE SET
+		STORE_NAME=#{storeName},
+		STORE_LOCATION=#{storeLocation},
+		STATUS=#{status},
+		CREATE_TIME=#{createTime},
+		MODIFY_TIME=#{modifyTime},
+		REMARK=#{remark}
+		WHERE STORE_CODE=#{storeCode}
+	</update>
+	<!-- 修改管理员库房信息 -->
+	<update id="updateSMS" parameterType="hashMap">
+	update store_manager_store
+	t set t.store_manager_id=#{newStoreManagerId} where
+	t.store_code=#{storeCode} and t.store_manager_id=#{storeManagerId}
+	</update>
+
+	<!-- 停用库房 -->
+	<update id="stopStore" parameterType="StoreInfo">
+		UPDATE STORE SET
+		STATUS=#{status}
+		WHERE STORE_CODE=#{storeCode}
+	</update>
+
+
+	<!-- 增加货架 -->
+	<insert id="addStoreShelfInfo" parameterType="StoreShelf">
+		INSERT INTO STORE_SHELF(
+		STORE_SHELF_CODE,
+		STORE_CODE,
+		SHELF_NAME,
+		SHELF_STATUS,
+		CREATE_TIME,
+		MODIFY_TIME,
+		REMARK
+		)VALUES(
+		#{storeShelfCode},
+		#{storeCode},
+		#{shelfName},
+		#{shelfStatus},
+		#{createTime},
+		#{modifyTime},
+		#{remark}
+		)
+	</insert>
+
+	<!-- 查询货架信息 -->
+	<select id="queryStoreShelfInfo" parameterType="StoreShelfInfo"
+		resultType="StoreShelfInfo">
+		SELECT STORE_SHELF_CODE as storeShelfCode,
+		STORE_CODE as storeCode,
+		SHELF_NAME as shelfName,
+		SHELF_STATUS as shelfStatus,
+		CREATE_TIME as
+		createTime,
+		MODIFY_TIME as modifyTime,
+		REMARK as remark
+		FROM STORE_SHELF
+		<where>
+			<if test="_parameter!=null and _parameter!=''">
+				SHELF_NAME like '%${shelfName}%'
+			</if>
+		</where>
+		ORDER BY STORE_SHELF_CODE
+	</select>
+
+	<!-- 修改货架信息 -->
+
+	<update id="updateStoreShelfInfo" parameterType="StoreShelfInfo">
+		UPDATE STORE_SHELF SET
+		SHELF_NAME=#{shelfName},
+		SHELF_STATUS=#{shelfStatus},
+		CREATE_TIME=#{createTime},
+		MODIFY_TIME=#{modifyTime},
+		REMARK=#{remark}
+		WHERE
+		STORE_SHELF_CODE=#{storeShelfCode}
+	</update>
+	
+	<!-- 停用货架 -->
+	<update id="storeShelfStore" parameterType="StoreShelfInfo">
+		UPDATE STORE_SHELF
+		SET
+		SHELF_STATUS=#{shelfStatus}
+		WHERE STORE_SHELF_CODE=#{storeShelfCode}
+	</update>
+	<!-- 新增货位 -->
+	<insert id="addSGPInfo" parameterType="StoreGoodsPositionInfo">
+	INSERT INTO STORE_GOODS_POSITION(
+	STORE_GOODS_POSITION_CODE,
+	STORE_SHELF_CODE,
+	STATUS,
+	GOODS_CONTENT,
+	CREATE_TIME,
+	MODIFY_TIME,
+	REMARK
+	)VALUES(
+	#{storeGoodsPositionCode},
+	#{storeShelfCode},
+	#{status},
+	#{goodsContent},
+	#{createTime},
+	#{modifyTime},
+	#{remark}
+	)
+	</insert>
+	
+	<!-- 查询货位 -->
+	<select id="querySGPInfo" resultType="StoreGoodsPositionInfo">
+	SELECT STORE_GOODS_POSITION_CODE AS storeGoodsPositionCode,
+	STORE_SHELF_CODE AS storeShelfCode,
+	STATUS AS status,
+	GOODS_CONTENT AS goodsContent,
+	CREATE_TIME AS createTime,
+	MODIFY_TIME AS modifyTime,
+	REMARK AS remark
+	FROM STORE_GOODS_POSITION 
+	<where>
+	<if test="_parameter!=null and _parameter!=''">
+		STORE_GOODS_POSITION_CODE like %${storeGoodsPositionCode}%
+	</if>
+	</where>
+	</select>
+	
+	<!-- 更新货位 -->
+	<update id="updateSGPInfo" parameterType="StoreGoodsPositionInfo">
+	UPDATE STORE_GOODS_POSITION SET
+	STATUS=#{status},
+	GOODS_CONTENT=#{goodsContent},
+	MODIFY_TIME=#{modifyTime},
+	REMARK=#{remark}
+	WHERE STORE_GOODS_POSITION_CODE=#{storeGoodsPositionCode}
+	</update>
+	
+	<!-- 停用货位 -->
+	<update id="stopSGP" parameterType="StoreGoodsPositionInfo">
+	UPDATE STORE_GOODS_POSITION SET
+	STATUS=#{status}
+	WHERE STORE_GOODS_POSITION_CODE=#{storeGoodsPositionCode}
+	</update>
+</mapper>

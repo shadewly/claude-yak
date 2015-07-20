@@ -1,0 +1,362 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shine.his.store.dao.IStoreDrugDetailDao">
+  <!-- 库存表基本查询 -->
+  <resultMap id="BaseResultMap" type="com.shine.his.store.pojo.StoreDrugDetail" >
+    <id column="STORE_DRUG_DETAIL_ID" property="storeDrugDetailId" jdbcType="INTEGER" />
+    <result column="DRUG_CODE" property="drugCode" jdbcType="VARCHAR" />
+    <result column="SUPPLIER_CODE" property="supplierCode" jdbcType="VARCHAR" />
+    <result column="EXP_DATE" property="expDate" jdbcType="DATE" />
+    <result column="BATCH_NO" property="batchNo" jdbcType="VARCHAR" />
+    <result column="QUANTITY" property="quantity" jdbcType="INTEGER" />
+    <result column="STORE_GOODS_POSITION_CODE" property="storeGoodsPositionCode" jdbcType="VARCHAR" />
+    <result column="STATUS" property="status" jdbcType="VARCHAR" />
+  </resultMap>
+  <!-- 库存表关联查询药品目录查询 -->
+  <resultMap id="associationDrugCatalogResultMap" type="com.shine.his.store.pojo.StoreDrugDetail" >
+    <id column="STORE_DRUG_DETAIL_ID" property="storeDrugDetailId" jdbcType="INTEGER" />
+    <result column="DRUG_CODE" property="drugCode" jdbcType="VARCHAR" />
+    <result column="SUPPLIER_CODE" property="supplierCode" jdbcType="VARCHAR" />
+    <!-- 作为冗余字段查询 -->
+    <result column="SUPPLIER_NAME" property="supplierName" jdbcType="VARCHAR" />
+    <result column="EXP_DATE" property="expDate" jdbcType="DATE" />
+    <result column="BATCH_NO" property="batchNo" jdbcType="VARCHAR" />
+    <result column="QUANTITY" property="quantity" jdbcType="INTEGER" />
+    <result column="STORE_GOODS_POSITION_CODE" property="storeGoodsPositionCode" jdbcType="VARCHAR" />
+    <result column="STATUS" property="status" jdbcType="VARCHAR" />
+     <!-- 作为冗余字段查询 -->
+    <result column="OFFSET_EXP_DATE" property="offsetExpDate" jdbcType="INTEGER" />
+     <!-- 作为冗余字段查询 -->
+    <result column="UPPER_LEVEL" property="upperLevel" jdbcType="INTEGER" />
+     <!-- 作为冗余字段查询 -->
+    <result column="LOW_LEVEL" property="lowLevel" jdbcType="INTEGER" />
+    <!-- 预留字段 -->
+    <result column="PRICE" property="price" jdbcType="DOUBLE" />
+    <!-- 关联药品目录 -->
+    <association property="drugCatalog" resultMap="drugCatalogResultMap" javaType="com.shine.his.store.pojo.DrugList" column="DRUG_CODE">
+    </association>
+  </resultMap>
+  <!-- 药品目录 -->
+  <resultMap id="drugCatalogResultMap" type="com.shine.his.store.pojo.DrugList" >
+    <id column="CATALOG_DRUG_CODE" property="drugCode" jdbcType="VARCHAR" />
+    <result column="DRUG_DICT_CODE" property="drugDictCode" jdbcType="VARCHAR" />
+    <result column="DRUG_NAME" property="drugName" jdbcType="VARCHAR" />
+    <result column="COMM_NAME" property="commName" jdbcType="VARCHAR" />
+    <result column="OTHER_NAME" property="otherName" jdbcType="VARCHAR" />
+    <result column="DRUG_SPEC" property="drugSpec" jdbcType="VARCHAR" />
+    <result column="DRUG_DOSE" property="drugDose" jdbcType="VARCHAR" />
+    <result column="PRESC_DOCTOR_TITLE" property="prescDoctorTitle" jdbcType="VARCHAR" />
+    <result column="IS_NEW" property="isNew" jdbcType="VARCHAR" />
+    <result column="IS_SKINTEST" property="isSkintest" jdbcType="VARCHAR" />
+    <result column="MANUFACT" property="manufact" jdbcType="VARCHAR" />
+    <result column="DRUG_FROM" property="drugFrom" jdbcType="VARCHAR" />
+    <result column="ORIGIN" property="origin" jdbcType="VARCHAR" />
+    <result column="APPROVAL" property="approval" jdbcType="VARCHAR" />
+    <result column="VALUATION_UNIT" property="valuationUnit" jdbcType="VARCHAR" />
+    <result column="MEASURE_UNIT" property="measureUnit" jdbcType="VARCHAR" />
+    <result column="PACK_SPEC" property="packSpec" jdbcType="INTEGER" />
+    <result column="DOSE_UNIT" property="doseUnit" jdbcType="VARCHAR" />
+    <result column="DOSE_AMOUNT" property="doseAmount" jdbcType="INTEGER" />
+    <result column="INP_UNIT" property="inpUnit" jdbcType="VARCHAR" />
+    <result column="INP_PACK" property="inpPack" jdbcType="INTEGER" />
+    <result column="OUTP_UNIT" property="outpUnit" jdbcType="VARCHAR" />
+    <result column="OUTP_PACK" property="outpPack" jdbcType="INTEGER" />
+    <result column="STORE_UNIT" property="storeUnit" jdbcType="VARCHAR" />
+    <result column="DRUGSTORE_PACK" property="drugstorePack" jdbcType="INTEGER" />
+    <result column="CLAIM_UNIT" property="claimUnit" jdbcType="VARCHAR" />
+    <result column="IS_SPLIT" property="isSplit" jdbcType="VARCHAR" />
+    <result column="CATALOG_STATUS" property="status" jdbcType="VARCHAR" />
+    <result column="CREATE_USER" property="createUser" jdbcType="VARCHAR" />
+    <result column="CREATE_TIME" property="createTime" jdbcType="DATE" />
+    <result column="ELIMINATE_TIME" property="eliminateTime" jdbcType="DATE" />
+    <!-- TODO 先当冗余数据存在目录类里 -->
+    <result column="DRUG_CATEGORY_NAME" property="drugCategoryName" jdbcType="VARCHAR" />
+  </resultMap>
+  
+  <!-- 根据STORE_DRUG_DETAIL表主键查询,不进行关联查询 -->
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select 
+    STORE_DRUG_DETAIL_ID, DRUG_CODE, SUPPLIER_CODE, EXP_DATE, BATCH_NO, QUANTITY, STORE_GOODS_POSITION_CODE, STATUS
+    from STORE_DRUG_DETAIL
+    where STORE_DRUG_DETAIL_ID = #{storeDrugDetailId,jdbcType=INTEGER}
+  </select>
+  <!-- 根据STORE_DRUG_DETAIL表主键查询,不进行关联查询 -->
+  <select id="selectByParam" resultMap="BaseResultMap" parameterType="java.util.Map" >
+    select 
+    STORE_DRUG_DETAIL_ID, DRUG_CODE, SUPPLIER_CODE, EXP_DATE, BATCH_NO, QUANTITY, STORE_GOODS_POSITION_CODE, STATUS
+    from STORE_DRUG_DETAIL 
+    <where>
+    	<if test="drugCode != null">
+    	 DRUG_CODE = #{drugCode,jdbcType=VARCHAR} 
+    	</if>
+    	<if test="batchNo != null ">
+    	 AND BATCH_NO = #{batchNo,jdbcType=VARCHAR} 
+    	</if>
+    </where>
+  </select>
+  
+  <!-- 基础关联查询SQL -->
+  <sql id="associateSelect_baseSql" >
+  	select 	
+	  	detail.STORE_DRUG_DETAIL_ID, 
+	  	detail.DRUG_CODE,
+	  	detail.SUPPLIER_CODE,
+	  	detail.EXP_DATE, 
+	  	detail.BATCH_NO, 
+	  	detail.QUANTITY, 
+	  	detail.STORE_GOODS_POSITION_CODE, 
+	  	detail.STATUS,
+	  	0 as PRICE, 
+	  	drugList.DRUG_CODE AS CATALOG_DRUG_CODE, 
+	  	drugList.DRUG_DICT_CODE, 
+	  	drugList.DRUG_NAME, 
+	  	drugList.COMM_NAME, 
+	  	drugList.OTHER_NAME, 
+	  	drugList.DRUG_SPEC, 
+	  	drugList.DRUG_DOSE, 
+	    drugList.PRESC_DOCTOR_TITLE, 
+	    drugList.IS_NEW, 
+	    drugList.IS_SKINTEST, 
+	    drugList.MANUFACT, 
+	    drugList.DRUG_FROM, 
+	    drugList.ORIGIN, 
+	    drugList.APPROVAL, 
+	    drugList.VALUATION_UNIT, 
+	    drugList.MEASURE_UNIT, 
+	    drugList.PACK_SPEC, 
+	    drugList.DOSE_UNIT, 
+	    drugList.DOSE_AMOUNT, 
+	    drugList.INP_UNIT, 
+	    drugList.INP_PACK, 
+	    drugList.OUTP_UNIT, 
+	    drugList.OUTP_PACK, 
+	    drugList.STORE_UNIT, 
+	    drugList.DRUGSTORE_PACK, 
+	    drugList.CLAIM_UNIT, 
+	    drugList.IS_SPLIT, 
+	    drugList.CREATE_USER, 
+	    drugList.CREATE_TIME, 
+	    drugList.ELIMINATE_TIME,
+	    drugList.STATUS AS CATALOG_STATUS,
+	    supplier.VALUE_NAME AS SUPPLIER_NAME,
+	    drugCategory.VALUE_NAME AS DRUG_CATEGORY_NAME,
+	    drugConfig.OFFSET_EXP_DATE,
+	    drugConfig.UPPER_LEVEL,
+	    drugConfig.LOW_LEVEL
+  	from STORE_DRUG_DETAIL detail 
+  		join DRUG_LIST drugList on detail.DRUG_CODE = drugList.DRUG_CODE 
+  		join PUBLIC_DICT supplier on detail.SUPPLIER_CODE = supplier.VALUE_ID AND supplier.DICT_NAME='SUPPLY_TYPE_DICT' 
+  		join DRUG_DICT drugDict on drugList.DRUG_DICT_CODE = drugDict.DRUG_DICT_CODE 
+  		join PUBLIC_DICT drugCategory on drugDict.DRUG_CATEGORY = drugCategory.VALUE_ID AND drugCategory.DICT_NAME='DRUG_CATEGORY_DICT'
+  		join STORE_DRUG_CFG drugConfig on detail.DRUG_CODE = drugConfig.DRUG_CODE
+  </sql>
+  <!-- 根据STORE_DRUG_DETAIL表主键查询,进行关联药品查询 -->
+  <select id="associateSelectByPrimaryKey" resultMap="associationDrugCatalogResultMap" parameterType="java.lang.Integer" >
+  	<include refid="associateSelect_baseSql"/>
+    where detail.STORE_DRUG_DETAIL_ID = #{storeDrugDetailId,jdbcType=INTEGER} 
+  </select>
+  
+  <!-- ====================================库存详细分页查询开始 =================================  -->
+  <select id="selectStockList" resultType="list"  resultMap="associationDrugCatalogResultMap" parameterType="java.util.Map" >
+  	<include refid="associateSelect_baseSql"/>
+    <where>
+    	<if test="storeDrugDetailId != null ">
+    	 STORE_DRUG_DETAIL_ID = #{storeDrugDetailId,jdbcType=INTEGER} 
+    	</if>
+    	<if test="storeGoodsPositionCode != null ">
+    	 AND STORE_GOODS_POSITION_CODE = #{storeGoodsPositionCode,jdbcType=VARCHAR} 
+    	</if>
+    </where> 
+     
+  </select>
+  <!-- ====================================库存详细分页查询结束 =================================  -->
+  
+  <!-- ====================================汇总分页查询开始 =================================  -->
+   <!-- 库存表关联查询药品目录查询汇总 -->
+  <resultMap id="associationDrugCatalogSummaryListResultMap" type="com.shine.his.store.pojo.StoreDrugDetail" >
+    <id column="DRUG_CODE" property="drugCode" jdbcType="VARCHAR" />
+    <result column="QUANTITY" property="quantity" jdbcType="INTEGER" />
+    <result column="UPPER_LEVEL" property="upperLevel" jdbcType="INTEGER" />
+    <result column="LOW_LEVEL" property="lowLevel" jdbcType="INTEGER" />
+    <association property="drugCatalog" resultMap="drugCatalogSummaryListResultMap" javaType="com.shine.his.store.pojo.DrugList" column="DRUG_CODE">
+    </association>
+  </resultMap>
+  <resultMap id="drugCatalogSummaryListResultMap" type="com.shine.his.store.pojo.DrugList" >
+    <result column="DRUG_CODE" property="drugCode" jdbcType="VARCHAR" />
+    <result column="COMM_NAME" property="commName" jdbcType="VARCHAR" />
+    <result column="DRUG_SPEC" property="drugSpec" jdbcType="VARCHAR" />
+    <result column="STORE_UNIT" property="storeUnit" jdbcType="VARCHAR" />
+  </resultMap>
+  
+  <select id="selectStockSummaryList" resultType="list" resultMap="associationDrugCatalogSummaryListResultMap" parameterType="java.util.Map">
+  	 select   
+      detail.DRUG_CODE,
+      sum(detail.QUANTITY) AS QUANTITY,  
+      drugList.COMM_NAME, 
+      drugList.DRUG_SPEC, 
+      drugList.STORE_UNIT, 
+      drugConfig.UPPER_LEVEL,
+      drugConfig.LOW_LEVEL
+    from STORE_DRUG_DETAIL detail 
+      join DRUG_LIST drugList on detail.DRUG_CODE = drugList.DRUG_CODE AND detail.STATUS = '1'
+      join DRUG_DICT drugDict on drugList.DRUG_DICT_CODE = drugDict.DRUG_DICT_CODE 
+      join PUBLIC_DICT drugCategory on drugDict.DRUG_CATEGORY = drugCategory.VALUE_ID AND drugCategory.DICT_NAME='DRUG_CATEGORY_DICT'
+      join STORE_DRUG_CFG drugConfig on detail.DRUG_CODE = drugConfig.DRUG_CODE 
+      <where>  
+        <choose>  
+            <when test="drugCategoryId !=null and drugCategoryId != '' ">  
+                drugCategory.VALUE_ID = #{drugCategoryId, jdbcType=VARCHAR} 
+            </when >  
+            <when test="drugCategoryName != null and drugCategoryName != '' ">  
+                AND drugCategory.VALUE_NAME = #{drugCategoryName, jdbcType=VARCHAR}  
+            </when >    
+            <otherwise>
+            	1=1 
+            </otherwise>  
+        </choose>  
+      <if test="selectStr != null" >
+       AND ( drugList.COMM_NAME like '%'||#{selectStr, jdbcType=VARCHAR}||'%' OR drugList.INPUT_CODE like '%'||#{selectStr, jdbcType=VARCHAR}||'%' ) 
+      </if>
+      
+      <!-- 近期 -->
+    </where>    
+      group by detail.DRUG_CODE , drugList.COMM_NAME, drugList.DRUG_SPEC, drugList.STORE_UNIT, drugConfig.UPPER_LEVEL, drugConfig.LOW_LEVEL
+     <if test="onlyShowZeroStock != null and onlyShowZeroStock == true">
+       having sum(detail.QUANTITY) = 0 
+     </if>
+     <if test="bll != null and bll==true" >
+       <![CDATA[ having sum(detail.QUANTITY) <= drugConfig.LOW_LEVEL]]>  
+      </if>
+  </select>
+  <!-- ====================================汇总分页查询结束 =================================  -->
+  
+  <!-- 根据主键删除 -->
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from STORE_DRUG_DETAIL
+    where STORE_DRUG_DETAIL_ID = #{storeDrugDetailId,jdbcType=INTEGER}
+  </delete>
+  <!-- 插入 -->
+  <insert id="insert"  parameterType="com.shine.his.store.pojo.StoreDrugDetail" >
+  	<selectKey keyProperty="storeDrugDetailId" resultType="java.lang.Integer" order="BEFORE">
+  		SELECT SEQ_STORE_DRUG_DETAIL.NEXTVAL FROM DUAL
+  	</selectKey>
+    insert into STORE_DRUG_DETAIL (
+    	STORE_DRUG_DETAIL_ID,
+    	DRUG_CODE, 
+    	SUPPLIER_CODE, 
+    	EXP_DATE,
+    	BATCH_NO, 
+    	QUANTITY, 
+    	STORE_GOODS_POSITION_CODE, 
+    	STATUS) 
+    values (
+    	#{storeDrugDetailId,jdbcType=INTEGER},
+    	#{drugCode,jdbcType=VARCHAR}, 
+    	#{supplierCode,jdbcType=VARCHAR}, 
+    	#{expDate,jdbcType=DATE}, 
+        #{batchNo,jdbcType=VARCHAR}, 
+        #{quantity,jdbcType=INTEGER}, 
+        #{storeGoodsPositionCode,jdbcType=VARCHAR}, 
+        #{status,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.shine.his.store.pojo.StoreDrugDetail" >
+    <selectKey keyProperty="storeDrugDetailId" resultType="java.lang.Integer" order="BEFORE">
+  		SELECT SEQ_STORE_DRUG_DETAIL.NEXTVAL FROM DUAL
+  	</selectKey>
+    insert into STORE_DRUG_DETAIL
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="storeDrugDetailId != null" >
+        STORE_DRUG_DETAIL_ID,
+      </if>
+      <if test="drugCode != null" >
+        DRUG_CODE,
+      </if>
+      <if test="supplierCode != null" >
+        SUPPLIER_CODE,
+      </if>
+      <if test="expDate != null" >
+        EXP_DATE,
+      </if>
+      <if test="batchNo != null" >
+        BATCH_NO,
+      </if>
+      <if test="quantity != null" >
+        QUANTITY,
+      </if>
+      <if test="storeGoodsPositionCode != null" >
+        STORE_GOODS_POSITION_CODE,
+      </if>
+      <if test="status != null" >
+        STATUS,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="storeDrugDetailId != null" >
+        #{storeDrugDetailId,jdbcType=INTEGER},
+      </if>
+      <if test="drugCode != null" >
+        #{drugCode,jdbcType=VARCHAR},
+      </if>
+      <if test="supplierCode != null" >
+        #{supplierCode,jdbcType=VARCHAR},
+      </if>
+      <if test="expDate != null" >
+        #{expDate,jdbcType=DATE},
+      </if>
+      <if test="batchNo != null" >
+        #{batchNo,jdbcType=VARCHAR},
+      </if>
+      <if test="quantity != null" >
+        #{quantity,jdbcType=INTEGER},
+      </if>
+      <if test="storeGoodsPositionCode != null" >
+        #{storeGoodsPositionCode,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null" >
+        #{status,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  
+  <!-- 更新 -->
+   <update id="updateByPrimaryKey" parameterType="com.shine.his.store.pojo.StoreDrugDetail" >
+    update STORE_DRUG_DETAIL
+    set DRUG_CODE = #{drugCode,jdbcType=VARCHAR},
+      SUPPLIER_CODE = #{supplierCode,jdbcType=VARCHAR},
+      EXP_DATE = #{expDate,jdbcType=VARCHAR},
+      BATCH_NO = #{batchNo,jdbcType=VARCHAR},
+      QUANTITY = #{quantity,jdbcType=INTEGER},
+      STORE_GOODS_POSITION_CODE = #{storeGoodsPositionCode,jdbcType=DATE},
+      STATUS = #{status,jdbcType=VARCHAR}
+    where STORE_DRUG_DETAIL_ID = #{storeDrugDetailId,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKeySelective" parameterType="com.shine.his.store.pojo.StoreDrugDetail" >
+    update STORE_DRUG_DETAIL
+    <set>
+      <if test="drugCode != null" >
+        DRUG_CODE = #{drugCode,jdbcType=VARCHAR},
+      </if>
+      <if test="supplierCode != null" >
+        SUPPLIER_CODE = #{supplierCode,jdbcType=VARCHAR},
+      </if>
+      <if test="expDate != null" >
+        EXP_DATE = #{expDate,jdbcType=DATE},
+      </if>
+      <if test="batchNo != null" >
+        BATCH_NO = #{batchNo,jdbcType=VARCHAR},
+      </if>
+      <if test="quantity != null" >
+        QUANTITY = #{quantity,jdbcType=INTEGER},
+      </if>
+      <if test="storeGoodsPositionCode != null" >
+        STORE_GOODS_POSITION_CODE = #{storeGoodsPositionCode,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null" >
+        STATUS = #{status,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where STORE_DRUG_DETAIL_ID = #{storeDrugDetailId,jdbcType=INTEGER}
+  </update>
+
+</mapper>

@@ -1,0 +1,47 @@
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns="http://www.springframework.org/schema/beans"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+    http://www.springframework.org/schema/beans/spring-beans.xsd 
+    http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+	<!-- 读取配置文件 -->
+	<context:property-placeholder location="classpath:datasource.properties" />
+
+	<!--spring 注解扫描基础包配置 -->
+	<context:component-scan base-package="com.shine">
+	</context:component-scan>
+
+	<bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="oracleJdbcDataSource" />
+	</bean>
+	<aop:aspectj-autoproxy expose-proxy="true" />
+
+	<tx:advice id="txAdvice" transaction-manager="txManager">
+		<tx:attributes>
+			<tx:method name="*" propagation="REQUIRED" read-only="false" />
+			<!-- <tx:method name="add*" propagation="REQUIRED" />
+			<tx:method name="del*" propagation="REQUIRED" />
+			<tx:method name="update*" propagation="REQUIRED" />
+			<tx:method name="save*" propagation="REQUIRED" />
+			<tx:method name="clear*" propagation="REQUIRED" />
+			<tx:method name="insert*" propagation="REQUIRED" /> -->
+		</tx:attributes>
+	</tx:advice>
+
+	<aop:config expose-proxy="true" proxy-target-class="true">
+		<!-- 只对业务层配置事务 -->
+		<aop:pointcut id="txPointcut"
+			expression="execution(* com.shine.his.*.service.*.*(..))" />
+		<aop:advisor id="txAdvisor" advice-ref="txAdvice" pointcut-ref="txPointcut" />
+	</aop:config>
+
+	<import resource="classpath:mybatis/mybatis-spring.xml" />
+	<import resource="classpath:shiro/shiro-spring.xml" />
+	
+	<!-- 监听器启动加载初始化数据 start -->
+	<bean class="com.shine.his.common.listerner.SysListener">
+
+	</bean>
+	<!-- 监听器启动加载初始化数据 end -->
+</beans>

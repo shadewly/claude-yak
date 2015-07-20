@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shine.his.common.dao.ISysDictDao">
+	<sql id="sysDictColumns">
+	    <![CDATA[
+	    	SYS_CODE	AS			sysCode,
+	    	SYS_CODE	AS			keyCode,			
+			PARENT_CODE	AS		parentCode,		
+			DICT_TYPE	AS		dictType,		
+			SYS_VALUE	AS			sysValue,		
+			REMARK	AS			remark	
+
+	    ]]>
+	</sql>
+	<!-- 系统字典返回结果 -->
+	<resultMap id="sysDictMap" type="SysDictEntity">
+		<id property="sysCode" column="SYS_CODE" />
+		<result property="parentCode" column="PARENT_CODE" />
+		<result property="dictType" column="DICT_TYPE" />
+		<result property="sysValue" column="SYS_VALUE" />
+		<result property="remark" column="REMARK" />
+		<collection property="sysDictList" column="sysCode"
+			ofType="java.util.HashMap" select="sysDictDetail" javaType="ArrayList"></collection>
+	</resultMap>
+	
+
+	<select id="sysDictInit"  resultMap="sysDictMap">
+		select
+
+		<include refid="sysDictColumns" />
+		from SYS_DICT where parent_code is null
+	
+	</select>
+	
+	<select id="sysDictDetail"  resultMap="sysDictMap" parameterType="HashMap">
+		select
+
+		<include refid="sysDictColumns" />
+		from SYS_DICT where PARENT_CODE=#{parentCode}
+	
+	</select>
+</mapper>

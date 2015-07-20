@@ -1,0 +1,354 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shine.his.store.dao.IStoreDrugMasterDao">
+
+	<!-- 入库表主表字段 -->
+	<sql id="storeInMasterColumns">
+	    <![CDATA[
+	    	STORE_ORDER_NO as storeOrderNo,
+			STORE_ORDER_TYPE as storeOrderType,
+			CREATE_USER as createUser,
+			CREATE_TIME as createTime,
+			TOTAL_PURCHASE_PRICE as totalPurchasePrice,
+			DEPARTMENT as department,
+			REMARK as remark,
+			TOTAL_RETAIL_PRICE as totalRetailPrice
+	    ]]>
+	</sql>
+
+	<!-- 入库单详细表字段 -->
+	<sql id="storeInDetailColumns">
+	    <![CDATA[
+	    STORE_ORDER_NO	AS	storeOrderNo,
+		STORE_DRUG_IN_DETAIL_ID	AS	storeDrugInDetailId,
+		DRUG_CODE	AS	drugCode,
+		PURCHASE_PRICE	AS	purchasePrice,
+		RETAIL_PRICE	AS	retailPrice,
+		EXP_DATE	AS	expDate,
+		BATCH_NO	AS	batchNo,
+		QUANTITY	AS	quantity,
+		SUPPLIER_CODE	AS	supplierCode,
+		STORE_CODE	AS	storeCode,
+		STORE_GOODS_POSITION_CODE	AS	storeGoodsPositionCode,
+		PURCHASE_AMOUNT	AS	purchaseAmount,
+		RETAIL_AMOUNT	AS	retailAmount,
+		DRUG_SOURCE	AS	drugSource,
+		REMARK	AS	remark
+	    
+	    ]]>
+	</sql>
+
+	<!-- 出库表主表字段 -->
+	<sql id="storeOutMasterColumns">
+	    <![CDATA[
+	    	STORE_ORDER_NO as storeOrderNo,
+			STORE_ORDER_TYPE as storeOrderType,
+			CREATE_USER as createUser,
+			CREATE_TIME as createTime,
+			TOTAL_PURCHASE_PRICE as totalPurchasePrice,
+			DEPARTMENT as department,
+			REMARK as remark,
+			TOTAL_RETAIL_PRICE as totalRetailPrice
+	    ]]>
+	</sql>
+
+	<!-- 出库单详细表字段 -->
+	<sql id="storeOutDetailColumns">
+	    <![CDATA[
+	    STORE_ORDER_NO	AS	storeOrderNo,
+		STORE_DRUG_OUT_DETAIL_ID	AS	storeDrugInDetailId,
+		DRUG_CODE	AS	drugCode,
+		PURCHASE_PRICE	AS	purchasePrice,
+		RETAIL_PRICE	AS	retailPrice,
+		EXP_DATE	AS	expDate,
+		BATCH_NO	AS	batchNo,
+		QUANTITY	AS	quantity,
+		SUPPLIER_CODE	AS	supplierCode,
+		STORE_CODE	AS	storeCode,
+		STORE_GOODS_POSITION_CODE	AS	storeGoodsPositionCode,
+		PURCHASE_AMOUNT	AS	purchaseAmount,
+		RETAIL_AMOUNT	AS	retailAmount,
+		DRUG_SOURCE	AS	drugSource,
+		REMARK	AS	remark
+	    
+	    ]]>
+	</sql>
+
+	<!-- 入库单返回结果 -->
+	<resultMap id="storeInMap" type="StoreDrugInMaster">
+		<id property="storeOrderNo" column="STORE_ORDER_NO" />
+		<result property="createTime" column="CREATE_TIME" />
+		<result property="totalPurchasePrice" column="TOTAL_PURCHASE_PRICE" />
+		<result property="totalRetailPrice" column="TOTAL_RETAIL_PRICE" />
+		<result property="department" column="DEPARTMENT" />
+		<result property="remark" column="REMARK" />
+		<collection property="storeInOrderDetailList" column="storeOrderNo"
+			ofType="java.util.HashMap" select="storeInDataDetail" javaType="ArrayList"></collection>
+	</resultMap>
+	<!-- 出库单返回结果 -->
+	<resultMap id="storeOutMap" type="StoreDrugOutMaster">
+		<id property="storeOrderNo" column="STORE_ORDER_NO" />
+		<result property="createTime" column="CREATE_TIME" />
+		<result property="totalPurchasePrice" column="TOTAL_PURCHASE_PRICE" />
+		<result property="totalRetailPrice" column="TOTAL_RETAIL_PRICE" />
+		<result property="department" column="DEPARTMENT" />
+		<result property="remark" column="REMARK" />
+		<collection property="storeOutOrderDetailList" column="storeOrderNo"
+			ofType="java.util.HashMap" select="storeOutDataDetail" javaType="ArrayList"></collection>
+	</resultMap>
+
+
+	<!-- 新增入库主表信息 -->
+
+	<insert id="insertInStoreDrug" parameterType="com.shine.his.store.pojo.StoreDrugInMaster">
+		<selectKey resultType="String" order="BEFORE" keyProperty="storeOrderNo">
+			select
+			to_char(SYSDATE,'YYYYMMDDHH24MISS')||SEQ_STORE_DRUG_IN_MASTER.Nextval
+			from dual
+
+		</selectKey>
+		INSERT INTO STORE_DRUG_IN_MASTER
+		(STORE_ORDER_NO,
+		STORE_ORDER_TYPE,
+		CREATE_USER,
+		CREATE_TIME,
+		DEPARTMENT,
+		REMARK)
+		VALUES
+		(#{storeOrderNo,jdbcType=VARCHAR},
+		#{storeOrderType},
+		#{createUser},
+		sysdate ,
+		#{department},
+		#{remark}
+		)
+	</insert>
+
+	<!-- 新增入库主表信息 -->
+	<insert id="insertInStoreDrugDetail" parameterType="List">
+	
+		INSERT INTO STORE_DRUG_IN_DETAIL
+		(STORE_DRUG_IN_DETAIL_ID,
+		STORE_ORDER_NO ,
+		DRUG_CODE,
+		PURCHASE_PRICE,
+		RETAIL_PRICE,
+		EXP_DATE,
+		BATCH_NO,
+		QUANTITY,
+		SUPPLIER_CODE,
+		STORE_CODE,
+		STORE_GOODS_POSITION_CODE,
+		PURCHASE_AMOUNT,
+		DRUG_SOURCE,
+		REMARK,
+		RETAIL_AMOUNT
+		) SELECT SEQ_STORE_DRUG_IN_DETAIL.Nextval AS STORE_DRUG_IN_DETAIL_ID, T.* FROM(
+		<foreach collection="storeDrugInDetailList" item="storeDrugInDetail"
+			index="index" separator="union all">
+			select
+			#{storeDrugInDetail.storeOrderNo} AS
+			STORE_ORDER_NO ,
+			#{storeDrugInDetail.drugCode} AS DRUG_CODE,
+			#{storeDrugInDetail.purchasePrice} AS PURCHASE_PRICE,
+			#{storeDrugInDetail.retailPrice} AS RETAIL_PRICE,
+			#{storeDrugInDetail.expDate} AS EXP_DATE,
+			#{storeDrugInDetail.batchNo} AS BATCH_NO,
+			#{storeDrugInDetail.quantity} AS QUANTITY,
+			#{storeDrugInDetail.supplierCode} AS SUPPLIER_CODE,
+			#{storeDrugInDetail.storeCode} AS STORE_CODE,
+			#{storeDrugInDetail.storeGoodsPositionCode} AS
+			STORE_GOODS_POSITION_CODE,
+			#{storeDrugInDetail.purchaseAmount} AS
+			PURCHASE_AMOUNT,
+			#{storeDrugInDetail.drugSource} AS DRUG_SOURCE,
+			#{storeDrugInDetail.remark} AS REMARK,
+			#{storeDrugInDetail.retailAmount} AS RETAIL_AMOUNT
+
+			from dual
+			
+		</foreach>
+		) T
+	</insert>
+
+
+	<!-- 新增出库信息 -->
+	<insert id="insertOutStoreDrug" parameterType="com.shine.his.store.pojo.StoreDrugOutMaster">
+		<selectKey resultType="String" order="BEFORE" keyProperty="storeOrderNo">
+			select
+			to_char(SYSDATE,'YYYYMMDDHH24MISS')||SEQ_STORE_DRUG_OUT_MASTER.Nextval
+			from dual
+
+		</selectKey>
+		INSERT INTO STORE_DRUG_OUT_MASTER
+		(STORE_ORDER_NO,
+		STORE_ORDER_TYPE,
+		CREATE_USER,
+		CREATE_TIME,
+		DEPARTMENT,
+		REMARK)
+		VALUES
+		(#{storeOrderNo,jdbcType=VARCHAR},
+		#{storeOrderType},
+		#{createUser},
+		sysdate ,
+		#{department},
+		#{remark}
+		)
+	</insert>
+
+	<!-- 新增出库主表详细信息 -->
+	<insert id="insertOutStoreDrugDetail" parameterType="List">
+
+		INSERT INTO STORE_DRUG_OUT_DETAIL
+		(STORE_DRUG_OUT_DETAIL_ID,
+		STORE_ORDER_NO ,
+		DRUG_CODE,
+		PURCHASE_PRICE,
+		RETAIL_PRICE,
+		EXP_DATE,
+		BATCH_NO,
+		QUANTITY,
+		SUPPLIER_CODE,
+		STORE_CODE,
+		STORE_GOODS_POSITION_CODE,
+		PURCHASE_AMOUNT,
+		DRUG_SOURCE,
+		REMARK,
+		RETAIL_AMOUNT
+		) SELECT SEQ_STORE_DRUG_OUT_DETAIL.Nextval AS STORE_DRUG_OUT_DETAIL_ID, T.* FROM(
+		<foreach collection="storeDrugOutDetailList" item="storeDrugOutDetail"
+			index="index" separator="union all">
+			select
+			#{storeDrugOutDetail.storeOrderNo} AS
+			STORE_ORDER_NO ,
+			#{storeDrugOutDetail.drugCode} AS DRUG_CODE,
+			#{storeDrugOutDetail.purchasePrice} AS PURCHASE_PRICE,
+			#{storeDrugOutDetail.retailPrice} AS RETAIL_PRICE,
+			#{storeDrugOutDetail.expDate} AS EXP_DATE,
+			#{storeDrugOutDetail.batchNo} AS BATCH_NO,
+			#{storeDrugOutDetail.quantity} AS QUANTITY,
+			#{storeDrugOutDetail.supplierCode} AS SUPPLIER_CODE,
+			#{storeDrugOutDetail.storeCode} AS STORE_CODE,
+			#{storeDrugOutDetail.storeGoodsPositionCode} AS
+			STORE_GOODS_POSITION_CODE,
+			#{storeDrugOutDetail.purchaseAmount} AS
+			PURCHASE_AMOUNT,
+			#{storeDrugOutDetail.drugSource} AS DRUG_SOURCE,
+			#{storeDrugOutDetail.remark} AS REMARK,
+			#{storeDrugOutDetail.retailAmount} AS RETAIL_AMOUNT
+
+			from dual
+			
+		</foreach>
+		) T
+	</insert>
+
+	<!-- 查询入库主表数据 -->
+	<select id="storeInDataGrid" parameterType="HashMap" resultMap="storeInMap">
+		select
+
+		<include refid="storeInMasterColumns" />
+		from STORE_DRUG_IN_MASTER
+		<trim prefix="WHERE" prefixOverrides="AND |OR ">
+
+			<if test="storeOrderType!=null">
+				AND STORE_ORDER_TYPE = #{storeOrderType}
+			</if>
+			<if test="storeOrderNo!=null">
+				AND STORE_ORDER_NO = #{storeOrderNo}
+			</if>
+			<if test="startTime!=null and endTime!=null">
+				<![CDATA[AND to_char(CREATE_TIME ,'yyyy-mm-dd') >= #{startTime} AND to_char(CREATE_TIME ,'yyyy-mm-dd') <= #{endTime}]]>
+			</if>
+			<if test="startTime!=null and endTime==null">
+				AND instr(to_char(CREATE_TIME,'yyyy-mm-dd'),
+				#{startTime}) > 0
+			</if>
+
+
+		</trim>
+	</select>
+	<!-- 查询入库详细表数据 -->
+	<select id="storeInDataDetail" parameterType="HashMap"
+		resultType="StoreDrugInDetail">
+		select
+
+		<include refid="storeInDetailColumns" />
+		from STORE_DRUG_IN_DETAIL
+		where
+
+		STORE_ORDER_NO = #{storeOrderNo}
+
+	</select>
+
+	<!-- 查询出库主表数据 -->
+	<select id="storeOutDataGrid" parameterType="HashMap" resultMap="storeOutMap">
+		select
+
+		<include refid="storeOutMasterColumns" />
+		from STORE_DRUG_OUT_MASTER
+		<trim prefix="WHERE" prefixOverrides="AND |OR ">
+
+			<if test="storeOrderType!=null">
+				AND STORE_ORDER_TYPE = #{storeOrderType}
+			</if>
+			<if test="storeOrderNo!=null">
+				AND STORE_ORDER_NO = #{storeOrderNo}
+			</if>
+			<if test="startTime!=null and endTime!=null">
+				<![CDATA[AND to_char(CREATE_TIME ,'yyyy-mm-dd') >= #{startTime} AND to_char(CREATE_TIME ,'yyyy-mm-dd') <= #{endTime}]]>
+			</if>
+			<if test="startTime!=null and endTime==null">
+				AND instr(to_char(CREATE_TIME,'yyyy-mm-dd'),
+				#{startTime}) > 0
+			</if>
+
+
+		</trim>
+	</select>
+	<!-- 查询入库详细表数据 -->
+	<select id="storeOutDataDetail" parameterType="HashMap"
+		resultType="StoreDrugOutDetail">
+		select
+
+		<include refid="storeOutDetailColumns" />
+		from STORE_DRUG_OUT_DETAIL
+		where
+
+		STORE_ORDER_NO = #{storeOrderNo}
+
+	</select>
+
+	<!-- 更新入库主表信息 -->
+	<update id="updateInStoreDrug" parameterType="com.shine.his.store.pojo.StoreDrugInMaster">
+		update STORE_DRUG_IN_MASTER
+		<set>
+			<if test="totalPurchasePrice!=null">
+				TOTAL_PURCHASE_PRICE = #{totalPurchasePrice},
+			</if>
+			<if test="totalRetailPrice!=null">
+				TOTAL_RETAIL_PRICE = #{totalRetailPrice}
+			</if>
+		</set>
+
+
+		where STORE_ORDER_NO = #{storeOrderNo}
+	</update>
+	<!-- 更新出库主表信息 -->
+	<update id="updateOutStoreDrug" parameterType="com.shine.his.store.pojo.StoreDrugOutMaster">
+		update STORE_DRUG_OUT_MASTER
+		<set>
+			<if test="totalPurchasePrice!=null">
+				TOTAL_PURCHASE_PRICE = #{totalPurchasePrice},
+			</if>
+			<if test="totalRetailPrice!=null">
+				TOTAL_RETAIL_PRICE = #{totalRetailPrice}
+			</if>
+		</set>
+
+
+		where STORE_ORDER_NO = #{storeOrderNo}
+	</update>
+</mapper>

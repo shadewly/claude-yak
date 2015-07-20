@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.shine.his.store.dao.IPurchaseApplicationDao">
+	<!-- 采购单申请单主表字段 -->
+	<sql id="purchaseApplicationMasterColumns">
+	    <![CDATA[
+	    STORE_PROCUREMENT_PLAN_NO	AS	storeProcurementPlanNo,
+		TITLE	AS	title,
+		PRIORITY	AS	priority,
+		CREATE_USER	AS	createUser,
+		CREATE_TIME	AS	createTime,
+		IMPROVE_USER	AS	improveUser,
+		IMPROVE_TIME	AS	improveTime,
+		AUDIT_USER	AS	auditUser,
+		AUDIT_TIME	AS	auditTime,
+		STATUS	AS	status,
+		REMARK	AS	remark    
+	    ]]>
+	</sql>
+	<!-- 采购单申请单详情表字段 -->
+	<sql id="purchaseApplicationDetailColumns">
+	    <![CDATA[
+	    PROCUREMENT_PLAN_DETAIL_ID	AS	procurementPlanDetailId,
+	    STORE_PROCUREMENT_PLAN_NO	AS	storeProcurementPlanNo,
+		DRUG_CODE	AS	drugCode,
+		QUANTITY	AS	quantity,
+		PURCHASE_PRICE	AS	purchasePrice,
+		SUPPLIER_CODE	AS	supplierCode,
+		REMARK	AS	remark	
+	    ]]>
+	</sql>
+	<!-- 采购单申请单主表返回结果 -->
+    <resultMap id="applicationMasterMap" type="PurchaseApplicationMaster">
+		<id property="storeProcurementPlanNo" column=" STORE_PROCUREMENT_PLAN_NO" />
+		<result property="title" column="TITLE" />
+		<result property="priority" column="PRIORITY" />
+		<result property="createUser" column="CREATE_USER" />
+		<result property="createTime" column="CREATE_TIME" />
+		<result property="improveUser" column="IMPROVE_USER" />
+		<result property="improveTime" column="IMPROVE_TIME" />
+		<result property="auditUser" column="AUDIT_USER" />
+		<result property="auditTime" column="AUDIT_TIME" />
+		<result property="status" column="STATUS" />
+		<result property="remark" column="REMARK" />
+		<collection property="purchaseApplicationDetail" column="storeProcurementPlanNo"
+			ofType="java.util.HashMap" select="getApplicationDetailOne" javaType="ArrayList"></collection>
+	</resultMap>
+      <insert id="addPurchaseApplicationMaster" parameterType="com.shine.his.store.pojo.PurchaseApplicationMaster">
+        insert into STORE_PROCUREMENT_PLAN_MASTER pur_master
+		(STORE_PROCUREMENT_PLAN_NO,
+		TITLE,
+		PRIORITY,
+		REMARK,
+		CREATE_USER,
+		CREATE_TIME,
+		STATUS
+		)
+		VALUES
+			(#{storeProcurementPlanNo,jdbcType=VARCHAR},
+			#{title,jdbcType=VARCHAR},
+			#{priority},
+			#{remark},
+			#{createUser},
+			sysdate,
+			#{status}			
+			)
+	</insert>
+      <insert id="addPurchaseApplicationDetail" parameterType="java.util.List">
+        insert into PROCUREMENT_PLAN_DETAIL pur_detail
+		(PROCUREMENT_PLAN_DETAIL_ID,STORE_PROCUREMENT_PLAN_NO,DRUG_CODE,
+		QUANTITY,PURCHASE_PRICE,SUPPLIER_CODE,
+		REMARK
+		) SELECT SEQ_PROCUREMENT_PLAN_DETAIL.Nextval AS PROCUREMENT_PLAN_DETAIL_ID,T.* from(
+		<foreach collection="purchaseApplicationDetail" item="purDetail"
+			index="index" separator="union all">
+			select 
+			#{purDetail.storeProcurementPlanNo},
+			#{purDetail.drugCode},
+			#{purDetail.quantity},
+			#{purDetail.purchasePrice},
+			#{purDetail.supplierCode},
+			#{purDetail.remark}			
+			from dual
+		</foreach>
+		) T
+	</insert>
+     <select id="getPurchaseApplicationMaster" parameterType="com.shine.his.store.pojo.PurchaseApplicationMaster"
+		resultType="com.shine.his.store.pojo.PurchaseApplicationMaster">
+		select 
+		<include refid="purchaseApplicationMasterColumns" />
+		 from STORE_PROCUREMENT_PLAN_MASTER pur_plan 
+		 <where> 		
+		<if test="priority != null and priority != ''">
+			and pur_plan.PRIORITY = #{priority}
+		</if>	
+		<if test="title != null and title != ''">
+			and pur_plan.TITLE = #{title}
+		</if>	
+		<if test="startTime != null and startTime != '' and endTime != null and endTime != ''">
+		    and pur_plan.CREATE_TIME &gt; = to_date(#{startTime},'yyyy-mm-dd')
+		    and	pur_plan.CREATE_TIME &lt;= to_date(#{endTime},'yyyy-mm-dd')
+		</if>	
+		<if test="storeProcurementPlanNo != null and storeProcurementPlanNo != ''">
+			(pur_plan.STORE_PROCUREME  LIKE '%' || UPPER #{storeProcurementPlanNo}) || '%')
+			
+		</if>		
+		<if test="status != null and status != ''">
+			or (pur_plan.STATUS LIKE '%' || UPPER #{status}) || '%')
+		</if>	
+		</where>	
+		ORDER BY CREATE_TIME DESC
+		</select>
+        <select id="getApplicationDetail" parameterType="String"
+           resultMap="applicationMasterMap" >
+		select
+		<include refid="purchaseApplicationMasterColumns" />
+		from 
+		 STORE_PROCUREMENT_PLAN_MASTER pur_master 
+		 where
+		pur_master.STORE_PROCUREMENT_PLAN_NO = #{storeProcurementPlanNo}		
+		</select>
+        <select id="getApplicationDetailOne" parameterType="String"
+		resultType="com.shine.his.store.pojo.PurchaseApplicationDetail">
+		select
+		<include refid="purchaseApplicationDetailColumns" />
+		from 
+		 PROCUREMENT_PLAN_DETAIL pur_detail 
+		 where
+		pur_detail.STORE_PROCUREMENT_PLAN_NO = #{storeProcurementPlanNo}		
+		</select>
+<!--         <select id="getApplicationDetail" parameterType="String"
+		resultType="com.shine.his.store.pojo.PurchaseApplicationMaster">
+		select * from 
+		STORE_PROCUREMENT_PLAN_MASTER pur_master RIGHT  JOIN  PROCUREMENT_PLAN_DETAIL pur_detail 
+		ON pur_master.STORE_PROCUREMENT_PLAN_NO = pur_detail.STORE_PROCUREMENT_PLAN_NO
+		 where pur_master.STORE_PROCUREMENT_PLAN_NO = #{storeProcurementPlanNo}		
+		</select> -->
+		<!-- <update id="updatePurchaseApplicationStatus" parameterType="com.shine.his.store.pojo.PurchaseApplicationMaster">
+		update STORE_PROCUREMENT_PLAN_MASTER pur_master set pur_master.STATUS = #{status}
+		where pur_master.STORE_PROCUREMENT_PLAN_NO = #{storeProcurementPlanNo}
+		</update>
+		<update id="submitApplication" parameterType="com.shine.his.store.pojo.PurchaseApplicationMaster">
+		update STORE_PROCUREMENT_PLAN_MASTER pur_master set pur_master.STATUS = #{status},		
+		pur_master.IMPROVE_USER = #{improveUser},pur_master.IMPROVE_TIME = sysdate
+		where pur_master.STORE_PROCUREMENT_PLAN_NO = #{storeProcurementPlanNo}
+		</update>
+		<update id="auditApplication" parameterType="com.shine.his.store.pojo.PurchaseApplicationMaster">
+		update STORE_PROCUREMENT_PLAN_MASTER pur_master set pur_master.STATUS = #{status},
+		pur_master.AUDIT_USER = #{auditUser},pur_master.AUDIT_TIME = sysdate
+		where pur_master.STORE_PROCUREMENT_PLAN_NO = #{storeProcurementPlanNo}
+		</update> -->
+		<update id="updatePurchaseApplication">
+		update STORE_PROCUREMENT_PLAN_MASTER pur_master
+		<trim prefix="SET" suffixOverrides=",">  
+        <if test="status != null and status != '' ">
+          pur_master.STATUS = #{status},
+        </if>
+        <if test="improveUser != null and improveUser != '' ">
+          pur_master.IMPROVE_USER = #{improveUser},pur_master.IMPROVE_TIME = sysdate
+        </if>
+        <if test="auditUser != null and auditUser != '' ">
+         pur_master.AUDIT_USER = #{auditUser},pur_master.AUDIT_TIME = sysdate
+        </if>
+        </trim>
+        where pur_master.STORE_PROCUREMENT_PLAN_NO = #{storeProcurementPlanNo}
+		</update>
+		<delete id="delPurchaseApplicationMaster" parameterType="String">
+		delete from STORE_PROCUREMENT_PLAN_MASTER pur_master
+		where  pur_master.STORE_PROCUREMENT_PLAN_NO = #{storeProcurementPlanNo}
+		</delete>
+		<delete id="delPurchaseApplicationDetail" parameterType="String">
+		delete from PROCUREMENT_PLAN_DETAIL pur_detail
+		where pur_detail.PROCUREMENT_PLAN_DETAIL_ID = #{procurementPlanDetailId} 
+		or pur_detail.STORE_PROCUREMENT_PLAN_NO = #{procurementPlanDetailId}
+		</delete>
+</mapper>

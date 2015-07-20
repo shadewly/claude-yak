@@ -1,0 +1,36 @@
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:aop="http://www.springframework.org/schema/aop" xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+    <!--配置shiro授权领域-->
+    <bean id="authorizationRealm" class="com.shine.his.common.shiro.AuthorizationRealm">
+    </bean>
+
+    <!--配置安全管理器,并提供shiro授权领域,领域将为作安全管理器对验证数据的来源-->
+    <bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+        <!-- Single realm app.  If you have multiple realms, use the 'realms' property instead. -->
+        <property name="realm" ref="authorizationRealm"/>
+    </bean>
+
+    <!--参见源码注释,拦截已配置的url和跳转配置,此bean id 对应web.xml中的<filter-name>shiroFilter</filter-name>-->
+    <bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+        <property name="securityManager" ref="securityManager"/>
+        <property name="loginUrl" value="/loginCenter/loginEntry"/>
+        <property name="successUrl" value="/loginCenter"/>
+        <property name="unauthorizedUrl" value="/notpermitted"/>
+        <property name="filterChainDefinitions">
+            <value>
+                /loginCenter/**=anon
+                /** = anon
+                #authc
+            </value>
+        </property>
+    </bean>
+
+    <!--shiro 注解配置-->
+    <aop:config proxy-target-class="true"/>
+    <bean class="org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor">
+        <property name="securityManager" ref="securityManager"/>
+    </bean>
+</beans>

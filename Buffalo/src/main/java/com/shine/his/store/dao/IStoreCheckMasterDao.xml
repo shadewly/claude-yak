@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.shine.his.store.dao.IStoreCheckMasterDao">
+    <resultMap id="BaseResultMap" type="com.shine.his.store.pojo.StoreCheckMaster">
+        <id column="DRUG_CHECK_NO" jdbcType="VARCHAR" property="drugCheckNo"/>
+        <result column="CHECK_TIME" jdbcType="DATE" property="checkTime"/>
+        <result column="STORE_CODE" jdbcType="VARCHAR" property="storeCode"/>
+        <result column="TYPE" jdbcType="VARCHAR" property="type"/>
+        <result column="MAKE_USER" jdbcType="VARCHAR" property="makeUser"/>
+        <result column="STATUS" jdbcType="VARCHAR" property="status"/>
+        <result column="CONFIRM_USER" jdbcType="VARCHAR" property="confirmUser"/>
+        <result column="CONFIG_TIME" jdbcType="DATE" property="configTime"/>
+        <result column="AUDIT_USER" jdbcType="VARCHAR" property="auditUser"/>
+        <result column="AUDIT_TIME" jdbcType="DATE" property="auditTime"/>
+        <result column="REMARK" jdbcType="VARCHAR" property="remark"/>
+    </resultMap>
+
+    <select id="newStoreCheckNo" resultType="java.lang.String">
+       select 'SC'||to_char(SYSDATE,'yyyymmddhh24miss')||SEQ_STORE_CHECK_MASTER.Nextval from dual
+    </select>
+
+    <insert id="insertStoreCheckMaster" keyProperty="drugCheckNo"
+            parameterType="com.shine.his.store.pojo.StoreCheckMaster">
+        insert into HIS.STORE_CHECK_MASTER
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            DRUG_CHECK_NO,
+            <if test="checkTime != null">
+                CHECK_TIME,
+            </if>
+            <if test="storeCode != null">
+                STORE_CODE,
+            </if>
+            <if test="type != null">
+                TYPE,
+            </if>
+            <if test="makeUser != null">
+                MAKE_USER,
+            </if>
+            <if test="status != null">
+                STATUS,
+            </if>
+            <if test="confirmUser != null">
+                CONFIRM_USER,
+            </if>
+            <if test="configTime != null">
+                CONFIG_TIME,
+            </if>
+            <if test="auditUser != null">
+                AUDIT_USER,
+            </if>
+            <if test="auditTime != null">
+                AUDIT_TIME,
+            </if>
+            <if test="remark != null">
+                REMARK,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            #{drugCheckNo,jdbcType=VARCHAR} ,
+            <if test="checkTime != null">
+                #{checkTime,jdbcType=DATE},
+            </if>
+            <if test="storeCode != null">
+                #{storeCode,jdbcType=VARCHAR},
+            </if>
+            <if test="type != null">
+                #{type,jdbcType=VARCHAR},
+            </if>
+            <if test="makeUser != null">
+                #{makeUser,jdbcType=VARCHAR},
+            </if>
+            <if test="status != null">
+                #{status,jdbcType=VARCHAR},
+            </if>
+            <if test="confirmUser != null">
+                #{confirmUser,jdbcType=VARCHAR},
+            </if>
+            <if test="configTime != null">
+                #{configTime,jdbcType=DATE},
+            </if>
+            <if test="auditUser != null">
+                #{auditUser,jdbcType=VARCHAR},
+            </if>
+            <if test="auditTime != null">
+                #{auditTime,jdbcType=DATE},
+            </if>
+            <if test="remark != null">
+                #{remark,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+    <update id="updateStoreCheckMaster" parameterType="com.shine.his.store.pojo.StoreCheckMaster">
+        update HIS.STORE_CHECK_MASTER
+        <set>
+            <if test="checkTime != null">
+                CHECK_TIME = #{checkTime},
+            </if>
+            <if test="storeCode != null">
+                STORE_CODE = #{storeCode,jdbcType=VARCHAR},
+            </if>
+            <if test="type != null">
+                TYPE = #{type,jdbcType=VARCHAR},
+            </if>
+            <if test="makeUser != null">
+                MAKE_USER = #{makeUser,jdbcType=VARCHAR},
+            </if>
+            <if test="status != null">
+                STATUS = #{status,jdbcType=VARCHAR},
+            </if>
+            <if test="confirmUser != null">
+                CONFIRM_USER = #{confirmUser,jdbcType=VARCHAR},
+            </if>
+            <if test="configTime != null">
+                CONFIG_TIME = #{configTime},
+            </if>
+            <if test="auditUser != null">
+                AUDIT_USER = #{auditUser,jdbcType=VARCHAR},
+            </if>
+            <if test="auditTime != null">
+                AUDIT_TIME = #{auditTime},
+            </if>
+            <if test="remark != null">
+                REMARK = #{remark,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where DRUG_CHECK_NO = #{drugCheckNo,jdbcType=VARCHAR}
+    </update>
+
+    <sql id="Base_Column_List">
+    DRUG_CHECK_NO, CHECK_TIME, STORE_CODE, TYPE, MAKE_USER, STATUS, CONFIRM_USER, CONFIG_TIME,
+    AUDIT_USER, AUDIT_TIME, REMARK
+  </sql>
+
+    <update id="markDeleteStoreCheckMaster" parameterType="com.shine.his.store.pojo.StoreCheckMaster">
+        update HIS.STORE_CHECK_MASTER
+        set STATUS ='3'
+        where DRUG_CHECK_NO = #{drugCheckNo,jdbcType=VARCHAR}
+    </update>
+
+    <select id="getStoreCheckMasterByCheckNo" resultMap="BaseResultMap" parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List"/>
+        from HIS.STORE_CHECK_MASTER where DRUG_CHECK_NO=#{drugCheckNo,jdbcType=VARCHAR}
+    </select>
+
+
+    <select id="findStoreCheckMasters" resultMap="BaseResultMap" parameterType="java.util.Map">
+        select
+        <include refid="Base_Column_List"/>
+        from HIS.STORE_CHECK_MASTER
+        <where>
+            <if test="checkTimeStart != null">
+                and CHECK_TIME >= #{checkTimeStart}
+            </if>
+            <if test="checkTimeEnd != null">
+                and #{checkTimeEnd}>= CHECK_TIME
+            </if>
+            <if test="status!= null">
+                and status = #{status}
+            </if>
+            <if test="storeCheckNo!= null">
+                and instr(DRUG_CHECK_NO,#{storeCheckNo})>0
+            </if>
+        </where>
+    </select>
+</mapper>
